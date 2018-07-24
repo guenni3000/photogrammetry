@@ -13,19 +13,19 @@ import javax.swing.JFrame;
 
 public class Main {
 	
-	public static int filterSize = 3, tolerance = 10;
-	public static BufferedImage res; 
+	public static int filterSize = 3, tolerance = 10, scale = 0;
+	public static BufferedImage res, img1, img2; 
 	
 	public static void main(String[] args) throws IOException {
 		
-		BufferedImage img1 = ImageIO.read(new File("C:/Users/Julian/Desktop/pictures1/1_IMG.20180602_210752.jpg"));
-		BufferedImage img2 = ImageIO.read(new File("C:/Users/Julian/Desktop/pictures1/1_IMG.20180602_210757.jpg"));
+		img1 = scale(ImageIO.read(new File("C:/Users/Julian/Desktop/pictures1/1_IMG.20180602_210752.jpg")), 1080, false);
+		img2 = scale(ImageIO.read(new File("C:/Users/Julian/Desktop/pictures1/1_IMG.20180602_210757.jpg")), 1080, false);
 		
-		res = reload(scale(img1));
+		res = img1;
 		
 		JFrame frame = new JFrame();
 		frame.setVisible(true);
-		frame.setSize(img1.getWidth(), img1.getHeight());
+		frame.setSize(1920, 1080);
 		
 		Graphics g = frame.getGraphics();
 		
@@ -36,13 +36,27 @@ public class Main {
 
 				if(e.getKeyChar() == 'r') {
 					try {
-						res = reload(scale(img1));
+						res = reload(res);
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				} else if(e.getKeyChar() == ' ') {
 					
+					g.drawImage(res, 0, 0, null);
+					
+				} else if(e.getKeyChar() == '+') {
+					
+					scale++;
+					res = scale(img1, (int)(img1.getHeight()*Math.pow(1.1, scale)), true);
+					g.drawImage(res, 0, 0, null);
+					
+				} else if(e.getKeyChar() == '-') {
+					
+					scale--;
+					res = scale(img1, (int)(img1.getHeight()*Math.pow(1.1, scale)), true);
+					g.setColor(Color.WHITE);
+					g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
 					g.drawImage(res, 0, 0, null);
 					
 				}
@@ -117,21 +131,28 @@ public class Main {
 		
 	}
 	
-	public static BufferedImage scale(BufferedImage source){
+	public static BufferedImage scale(BufferedImage source, int height, boolean keepDisplaySize){
 		
-		double fact = 1080.0/source.getHeight();
+		if(height <= 0) height = 1;
+		double fact = (1.0*height)/source.getHeight();
+		int width = (int)(fact*source.getWidth());
 		
-		BufferedImage result = new BufferedImage((int)(fact*source.getWidth()), 1080, BufferedImage.TYPE_INT_RGB);
+		BufferedImage result;
+		
+		if(!keepDisplaySize) result = new BufferedImage(width<1?1:width, height, BufferedImage.TYPE_INT_RGB);
+		else result = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_RGB);
+		
 		Graphics g = result.getGraphics();
 		
-		for(int x = 0; x < result.getWidth(); x++){
+		for(int x = 0; x < width; x++){
 			
-			for(int y = 0; y < 1080; y++){
+			for(int y = 0; y < height; y++){
 				
 				Color c = new Color(source.getRGB((int)(x/fact), (int)(y/fact)));
 				g.setColor(c);
 				
-				g.fillRect(x, y, 1, 1);
+				if(!keepDisplaySize) g.fillRect(x, y, 1, 1);
+				else g.fillRect((int)(x/fact), (int)(y/fact), (int)(1/fact)+1, (int)(1/fact)+1);
 			}
 			
 		}
